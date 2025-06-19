@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Custom CSS for button animations and overall styling */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #121212; /* Very dark background, almost black */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden; /* Prevent scrollbar on small screens */
+        }
+
+        /* Base button styles */
+        .calc-button {
+            height: 64px; /* Slightly larger buttons */
+            width: 64px;
+            border-radius: 9999px; /* Fully rounded */
+            border: none;
+            cursor: pointer;
+            font-size: 1.5rem; /* Larger font size */
+            margin: 0; /* Managed by grid gap */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.15s ease-out; /* Changed: Smoother, less "bouncy" transition */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+            user-select: none; /* Prevent text selection on buttons */
+            position: relative; /* Needed for z-index on hover */
+            z-index: 1; /* Default z-index */
+        }
+
+        /* Gray buttons (numbers) */
+        .gray-button {
+            background-color: #333333; /* Dark gray for numbers */
+            color: white; /* High contrast white text */
+        }
+
+        .gray-button:hover {
+            background-color: #555555; /* Lighter gray on hover */
+            transform: scale(1.05) translateY(-4px); /* Changed: Gentler lift and growth */
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Changed: Softer, less aggressive shadow */
+            z-index: 10; /* Bring button to front on hover */
+        }
+
+        .gray-button:active {
+            background-color: #4a4a4a; /* Distinct darker gray on press */
+            transform: scale(0.99); /* Changed: Very subtle shrink */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.05s ease-out; /* Changed: Quicker snap back */
+        }
+
+        /* Orange buttons (operators, equals, decimal) */
+        .orange-button {
+            background-color: #00e676; /* Vibrant green for operators */
+            color: #121212; /* Dark text for high contrast */
+            font-weight: 600; /* Make operator text bolder */
+        }
+
+        .orange-button:hover {
+            background-color: #00c853; /* Darker green on hover */
+            transform: scale(1.05) translateY(-4px); /* Changed: Gentler lift and growth */
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Changed: Softer, less aggressive shadow */
+            z-index: 10; /* Bring button to front on hover */
+        }
+
+        .orange-button:active {
+            background-color: #00994d; /* Distinct darker green on press */
+            transform: scale(0.99); /* Changed: Very subtle shrink */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.05s ease-out; /* Changed: Quicker snap back */
+        }
+
+        /* Clear button specific styling (spans 2 columns) */
+        .clear-button {
+            grid-column: span 2; /* Span two columns */
+            width: auto; /* Adjust width to fit grid */
+            border-radius: 9999px; /* Maintain full rounded corners */
+            background-color: #616161; /* Medium gray for clear */
+            color: white; /* White text for clear */
+            font-size: 1.8rem; /* Larger icon size */
+        }
+
+        .clear-button:hover {
+            background-color: #757575; /* Lighter gray on hover */
+            transform: scale(1.03) translateY(-2px); /* Changed: Even gentler lift */
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); /* Changed: Even softer shadow */
+            z-index: 10;
+        }
+
+        .clear-button:active {
+            background-color: #505050; /* Distinct darker gray on press */
+            transform: scale(0.99); /* Changed: Very subtle shrink */
+            transition: all 0.05s ease-out; /* Changed: Quicker snap back */
+        }
+
+        /* Display text styling */
+        .p-text {
+            color: white; /* Bright white for maximum contrast */
+            font-size: 3.5rem; /* Larger font for display */
+            margin-top: 0.5rem;
+            margin-bottom: 0.25rem;
+            height: 80px; /* Fixed height for display area */
+            display: flex;
+            align-items: flex-end;
+            justify-content: flex-end;
+            padding: 0 1rem; /* Padding for text inside display */
+            overflow: hidden; /* Hide overflow if calculation is too long */
+            white-space: nowrap; /* Prevent wrapping */
+            text-overflow: ellipsis; /* Add ellipsis if text overflows */
+        }
+
+        /* Calculator body styling */
+        .calculator-body {
+            background-color: #1e1e1e; /* Slightly lighter dark gray for the calculator body */
+            padding: 1.5rem; /* Increased padding */
+            border-radius: 1.5rem; /* More rounded corners */
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4); /* Stronger shadow */
+            max-width: 20rem; /* Slightly narrower for a compact look */
+            width: 100%;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 400px) {
+            .calc-button {
+                height: 56px;
+                width: 56px;
+                font-size: 1.3rem;
+            }
+            .p-text {
+                font-size: 3rem;
+                height: 70px;
+            }
+            .calculator-body {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator-body">
+        <p class="js-calculation p-text"></p>
+
+        <div class="grid grid-cols-4 gap-3">
+            <button class="calc-button gray-button" data-value="1">1</button>
+            <button class="calc-button gray-button" data-value="2">2</button>
+            <button class="calc-button gray-button" data-value="3">3</button>
+            <button class="calc-button orange-button" data-value=" + ">+</button>
+
+            <button class="calc-button gray-button" data-value="4">4</button>
+            <button class="calc-button gray-button" data-value="5">5</button>
+            <button class="calc-button gray-button" data-value="6">6</button>
+            <button class="calc-button orange-button" data-value=" - ">-</button>
+
+            <button class="calc-button gray-button" data-value="7">7</button>
+            <button class="calc-button gray-button" data-value="8">8</button>
+            <button class="calc-button gray-button" data-value="9">9</button>
+            <button class="calc-button orange-button" data-value=" * ">*</button>
+
+            <button class="calc-button gray-button" data-value="0">0</button>
+            <button class="calc-button orange-button" data-value=".">.</button>
+            <button class="calc-button orange-button" data-value="=">=</button>
+            <button class="calc-button orange-button" data-value=" / ">/</button>
+
+            <button class="calc-button clear-button" data-value="clear"><i class="fas fa-backspace"></i></button>
+        </div>
+    </div>
+
+    <script>
+        // Initialize calculation from local storage or empty string
+        let calculation = localStorage.getItem('calculation') || '';
+
+        // Get the display element
+        const calculationDisplay = document.querySelector('.js-calculation');
+
+        // Function to update the display
+        function displayCalculation() {
+            calculationDisplay.innerHTML = calculation;
+        }
+
+        // Display the calculation when the page first loads
+        displayCalculation();
+
+        // Function to handle button clicks and update calculation
+        function updateCalculation(value) {
+            if (value === '=') {
+                try {
+                    // Evaluate the expression. Using eval() is generally not recommended for production
+                    // due to security risks with untrusted input, but for a simple client-side calculator
+                    // with numeric inputs, it's common.
+                    calculation = eval(calculation);
+                    // Handle cases where eval might return undefined or null for empty strings
+                    if (calculation === undefined || calculation === null) {
+                        calculation = '';
+                    }
+                } catch (e) {
+                    // Display an error if the expression is invalid
+                    calculation = 'Error';
+                }
+            } else if (value === 'clear') {
+                calculation = '';
+            } else {
+                calculation += value;
+            }
+            displayCalculation();
+            localStorage.setItem('calculation', calculation);
+        }
+
+        // Add event listeners to all calculator buttons
+        document.querySelectorAll('.calc-button').forEach(button => {
+            button.addEventListener('click', () => {
+                const value = button.dataset.value; // Get the value from data-value attribute
+                updateCalculation(value);
+            });
+        });
+
+        // Add keyboard support
+        document.addEventListener('keydown', (event) => {
+            const key = event.key;
+            // Map keyboard keys to calculator actions
+            if (key >= '0' && key <= '9' || key === '.') {
+                updateCalculation(key);
+            } else if (key === '+' || key === '-' || key === '*' || key === '/') {
+                updateCalculation(` ${key} `); // Add spaces around operators for readability
+            } else if (key === 'Enter' || key === '=') {
+                event.preventDefault(); // Prevent default Enter key behavior (e.g., form submission)
+                updateCalculation('=');
+            } else if (key === 'Backspace') {
+                // Remove the last character or operator from the calculation
+                calculation = calculation.slice(0, -1);
+                displayCalculation();
+                localStorage.setItem('calculation', calculation);
+            } else if (key === 'c' || key === 'C') {
+                updateCalculation('clear');
+            }
+        });
+    </script>
+</body>
+</html>
